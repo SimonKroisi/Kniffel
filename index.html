@@ -255,6 +255,40 @@ nav{display:flex;background:var(--s1);border-top:1px solid var(--brd);flex-shrin
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .cf{position:fixed;pointer-events:none;z-index:200;animation:cF linear forwards}
 @keyframes cF{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* Virtual Table */
+.tbl-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px}
+.tbl-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;text-align:center}
+.tbl-sub{font-size:11px;color:var(--tx3);text-align:center;max-width:280px}
+.tbl-container{position:relative;width:300px;height:340px;margin:8px auto}
+.tbl-surface{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:120px;background:linear-gradient(135deg,#1a3a2a,#0f2b1f);border:3px solid #2d5a3f;border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 2px 12px rgba(52,211,153,.08)}
+.tbl-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;color:rgba(52,211,153,.4);font-weight:700;letter-spacing:3px;text-transform:uppercase;pointer-events:none}
+.tbl-side{position:absolute;display:flex;gap:8px;align-items:center;justify-content:center}
+.tbl-side.top{top:0;left:50%;transform:translateX(-50%);flex-direction:row}
+.tbl-side.bottom{bottom:0;left:50%;transform:translateX(-50%);flex-direction:row}
+.tbl-side.left{left:0;top:50%;transform:translateY(-50%);flex-direction:column}
+.tbl-side.right{right:0;top:50%;transform:translateY(-50%);flex-direction:column}
+.tbl-slot{width:56px;height:56px;border:2px dashed var(--brd);border-radius:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
+.tbl-slot.over{border-color:var(--green);background:rgba(52,211,153,.08);transform:scale(1.08)}
+.tbl-slot .rot-lbl{position:absolute;bottom:-16px;font-size:8px;color:var(--tx3);font-weight:700;letter-spacing:1px;white-space:nowrap}
+.tbl-chip{width:48px;height:48px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none;transition:transform .15s,box-shadow .15s;position:relative;z-index:5}
+.tbl-chip:active{cursor:grabbing;transform:scale(1.12);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tbl-chip.dragging{opacity:.7;transform:scale(1.15);z-index:50}
+.tbl-chip .chip-dot{width:12px;height:12px;border-radius:50%;margin-bottom:2px}
+.tbl-chip .chip-nm{font-size:7px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.5px;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.tbl-ghost{position:fixed;z-index:999;pointer-events:none;opacity:.85}
+.tbl-bench{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 16px;min-height:60px;background:var(--s2);border:1.5px dashed var(--brd);border-radius:14px;width:100%;max-width:300px}
+.tbl-bench-lbl{font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:2px;text-align:center}
+.tbl-hint{font-size:10px;color:var(--tx3);text-align:center;margin-top:4px}
+.tbl-hint .em{color:var(--green)}
+.tbl-actions{display:flex;gap:8px;width:100%;max-width:300px}
+.tbl-actions button{flex:1}
+.tbl-sw{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--brd);border-radius:12px;padding:10px 14px;width:100%;max-width:300px}
+.tbl-sw .si-f{flex:1}.tbl-sw .l{font-size:12px;font-weight:600}.tbl-sw .d{font-size:10px;color:var(--tx3);margin-top:1px}
+
+/* Game rotation for table mode */
+#game.table-mode{transition:transform .5s ease;transform-origin:center center}
+#game.table-mode{position:fixed;inset:0;max-width:none}
 </style>
 </head>
 <body>
@@ -268,6 +302,7 @@ nav{display:flex;background:var(--s1);border-top:1px solid var(--brd);flex-shrin
 <div class="s-btns">
 <button class="btn-m grn" id="btn-res" style="display:none" onclick="resumeG()">▶ Fortsetzen</button>
 <button class="btn-m pri" onclick="startLocal()">Lokales Spiel</button>
+<button class="btn-m sec" onclick="openTableSetup()" id="btn-tbl" aria-label="Tisch-Aufstellung öffnen">🪑 Tisch-Aufstellung</button>
 <button class="btn-m blu" onclick="openLobby()">📡 Online Multiplayer</button>
 <button class="btn-m sec" id="btn-h0" style="display:none" onclick="showHist0()">📜 Spielverlauf</button>
 </div>
@@ -299,7 +334,7 @@ nav{display:flex;background:var(--s1);border-top:1px solid var(--brd);flex-shrin
 <div class="mo" id="modal"><div class="mo-c"><h3 id="mt">—</h3><p id="mm">—</p><div class="mo-b"><button class="mo-cn" onclick="clMo()">Abbrechen</button><button class="mo-ok" id="mb" onclick="doMo()">OK</button></div></div></div>
 
 <div id="ov-lobby" class="ov"><div class="ov-h"><h2>📡 Online Lobby</h2><div class="ov-x" onclick="leaveLob()">✕</div></div><div class="ov-b" id="lobbody"></div></div>
-<div id="ov-settings" class="ov"><div class="ov-h"><h2>⚙️ Einstellungen</h2><div class="ov-x" onclick="showTab('game')">✕</div></div><div class="ov-b"><div class="sg"><div class="si"><div class="si-i">💡</div><div class="si-f"><div class="l">Smart-Tipp</div><div class="d">Bester Zug & Halte-Empfehlung</div></div><button class="sw on" id="sw1" onclick="tOpt('tip')"></button></div><div class="si"><div class="si-i">🔢</div><div class="si-f"><div class="l">Punkte-Vorschau</div><div class="d">Mögliche Punkte in jeder Zeile</div></div><button class="sw on" id="sw2" onclick="tOpt('prev')"></button></div><div class="si"><div class="si-i">📳</div><div class="si-f"><div class="l">Vibration</div><div class="d">Haptisches Feedback</div></div><button class="sw on" id="sw3" onclick="tOpt('vib')"></button></div></div><div class="sg"><div class="si"><div class="si-i">🎮</div><div class="si-f"><div class="l">Spiel</div><div class="d" id="sgi">—</div></div></div></div><button class="sb dng" onclick="confNew()">↺ Neues Spiel</button></div></div>
+<div id="ov-settings" class="ov"><div class="ov-h"><h2>⚙️ Einstellungen</h2><div class="ov-x" onclick="showTab('game')">✕</div></div><div class="ov-b"><div class="sg"><div class="si"><div class="si-i">💡</div><div class="si-f"><div class="l">Smart-Tipp</div><div class="d">Bester Zug & Halte-Empfehlung</div></div><button class="sw on" id="sw1" onclick="tOpt('tip')"></button></div><div class="si"><div class="si-i">🔢</div><div class="si-f"><div class="l">Punkte-Vorschau</div><div class="d">Mögliche Punkte in jeder Zeile</div></div><button class="sw on" id="sw2" onclick="tOpt('prev')"></button></div><div class="si"><div class="si-i">📳</div><div class="si-f"><div class="l">Vibration</div><div class="d">Haptisches Feedback</div></div><button class="sw on" id="sw3" onclick="tOpt('vib')"></button></div><div class="si" id="si-tbl"><div class="si-i">🪑</div><div class="si-f"><div class="l">Tisch-Modus</div><div class="d">Automatische Drehung pro Spieler</div></div><button class="sw" id="sw4" onclick="tOpt('tbl')"></button></div></div><div class="sg"><div class="si"><div class="si-i">🎮</div><div class="si-f"><div class="l">Spiel</div><div class="d" id="sgi">—</div></div></div></div><button class="sb dng" onclick="confNew()">↺ Neues Spiel</button></div></div>
 <div id="ov-rules" class="ov"><div class="ov-h"><h2>📖 Regeln</h2><div class="ov-x" onclick="showTab('game')">✕</div></div><div class="ov-b"><div class="rb"><h3>🎯 Ziel</h3><p>13 Runden — höchste Punkte gewinnt.</p></div><div class="rb"><h3>🎲 Ablauf</h3><p>3× würfeln, Würfel halten, Kategorie wählen.</p></div><div class="rb"><h3>⬆ Oben</h3><p>Einser–Sechser: passende Augen. ≥63 = +35 Bonus!</p></div><div class="rb"><h3>⬇ Unten</h3><ul><li><b>3er-Pasch:</b> ≥3 gleiche → Summe</li><li><b>4er-Pasch:</b> ≥4 gleiche → Summe</li><li><b>Full House:</b> 3+2 → 25</li><li><b>Kl. Straße:</b> 4er Folge → 30</li><li><b>Gr. Straße:</b> 5er Folge → 40</li><li><b>Kniffel:</b> 5 gleiche → 50</li><li><b>Chance:</b> Summe aller</li></ul></div></div></div>
 <div id="ov-scores" class="ov"><div class="ov-h"><h2>📊 Stand</h2><div class="ov-x" onclick="showTab('game')">✕</div></div><div class="ov-b" id="sov"></div></div>
 <div id="ov-history" class="ov"><div class="ov-h"><h2>📜 Verlauf</h2><div class="ov-x" onclick="clHist()">✕</div></div><div class="ov-b" id="hlist"></div></div>
@@ -310,6 +345,34 @@ nav{display:flex;background:var(--s1);border-top:1px solid var(--brd);flex-shrin
 <div class="scan-sub">Halte die Kamera auf den QR-Code</div>
 <div class="scan-box"><video id="scanVid" autoplay playsinline></video><canvas id="scanCvs"></canvas><div class="scan-corners"></div></div>
 <button class="scan-close" onclick="stopScan()">Abbrechen</button>
+</div>
+
+<div id="ov-table" class="ov">
+<div class="ov-h"><h2>🪑 Tisch-Aufstellung</h2><div class="ov-x" onclick="closeTable()">✕</div></div>
+<div class="ov-b">
+<div class="tbl-wrap">
+<div class="tbl-sub">Ziehe Spieler an eine Seite des Tisches. Das Spiel dreht sich automatisch für jeden Spieler.</div>
+<div class="tbl-container" id="tblContainer">
+  <div class="tbl-surface"><div class="tbl-label">TISCH</div></div>
+  <div class="tbl-side top" id="tblTop"></div>
+  <div class="tbl-side bottom" id="tblBottom"></div>
+  <div class="tbl-side left" id="tblLeft"></div>
+  <div class="tbl-side right" id="tblRight"></div>
+</div>
+<div class="tbl-bench-lbl">Spieler ohne Platz</div>
+<div class="tbl-bench" id="tblBench"></div>
+<div class="tbl-hint" id="tblHint"></div>
+<div class="tbl-sw">
+  <div class="si-i">🔄</div>
+  <div class="si-f"><div class="l">Tisch-Modus</div><div class="d">Automatische Drehung pro Spieler</div></div>
+  <button class="sw" id="swTbl" onclick="tblToggle()"></button>
+</div>
+<div class="tbl-actions">
+  <button class="btn-m sec" onclick="closeTable()">← Zurück</button>
+  <button class="btn-m pri" onclick="applyTable()">✓ Übernehmen</button>
+</div>
+</div>
+</div>
 </div>
 
 <div id="toast"></div>
@@ -364,9 +427,9 @@ sN(nms);ci=0;NET=!1;clS();$('gbadge').classList.remove('show');initT();showScr('
 
 function resumeG(){const s=ld();if(!s)return;P=s.P;ci=s.ci;dice=s.dice;held=s.held;tL=s.tL;rol=s.rol;NET=!1;$('gbadge').classList.remove('show');restUI();showScr('game');toast('Fortgesetzt ✓')}
 
-function restUI(){const b=$('rbtn');b.disabled=tL<=0&&rol;b.textContent=tL<=0&&rol?'Eintragen ↓':'Würfeln';sRB();bD();uTh();rTabs();rRows();uTot();$('rnum').textContent=P[ci].round+1;if(rol&&O.prev)uPrev();if(rol&&O.tip)doTip();else $('tipa').classList.remove('show');uTT()}
+function restUI(){const b=$('rbtn');b.disabled=tL<=0&&rol;b.textContent=tL<=0&&rol?'Eintragen ↓':'Würfeln';sRB();bD();uTh();rTabs();rRows();uTot();$('rnum').textContent=P[ci].round+1;if(rol&&O.prev)uPrev();if(rol&&O.tip)doTip();else $('tipa').classList.remove('show');uTT();applyRotation()}
 
-function initT(){dice=[1,1,1,1,1];held=[0,0,0,0,0];tL=3;rol=!1;const b=$('rbtn');b.disabled=!1;b.textContent='Würfeln';sRB();$('tipa').classList.remove('show');bD();uTh();rTabs();rRows();uTot();$('rnum').textContent=P[ci].round+1;uTT();sv()}
+function initT(){dice=[1,1,1,1,1];held=[0,0,0,0,0];tL=3;rol=!1;const b=$('rbtn');b.disabled=!1;b.textContent='Würfeln';sRB();$('tipa').classList.remove('show');bD();uTh();rTabs();rRows();uTot();$('rnum').textContent=P[ci].round+1;uTT();applyRotation();sv()}
 function sRB(){const c=P[ci]?.color||'var(--accent)';$('rbtn').style.background=`linear-gradient(135deg,${c},color-mix(in srgb,${c} 70%,#fff))`;$('rbtn').style.boxShadow=`0 4px 16px ${c}44`}
 function uTT(){const t=$('ttag');if(NET){t.textContent=P[ci]?.name+(mySl===ci?' (Du)':'');t.style.background=P[ci]?.color+'22';t.style.color=P[ci]?.color;t.classList.add('show')}else t.classList.remove('show')}
 function myT(){return!NET||mySl===ci}
@@ -433,7 +496,9 @@ const pv=ci;let nx=(ci+1)%P.length;while(P[nx].round>=13&&nx!==pv)nx=(nx+1)%P.le
 if(NET){ci=nx;initT();toast(myT()?'Du bist dran!':P[ci].name+' ist dran…')}else showPass(pv,nx,v)}
 
 function showPass(pi,ni,v){const p=P[pi],n=P[ni];$('pe2').textContent=v>0?'🎉':'😬';$('pp2').textContent=p.name+' → Gesamt:';$('psc2').textContent=cT(p.scores)+' Pkt.';$('pnn2').textContent=n.name;$('pnn2').style.color=n.color;
-$('bgo2').style.background=`linear-gradient(135deg,${n.color},color-mix(in srgb,${n.color} 70%,#fff))`;$('bgo2').dataset.ni=ni;$('pass').classList.add('show')}
+$('bgo2').style.background=`linear-gradient(135deg,${n.color},color-mix(in srgb,${n.color} 70%,#fff))`;$('bgo2').dataset.ni=ni;
+$('phint').textContent=TBL.enabled&&!NET?'Das Spiel dreht sich automatisch 🔄':'Gerät weitergeben 📱';
+$('pass').classList.add('show')}
 function contTurn(){ci=+($('bgo2').dataset.ni||0);$('pass').classList.remove('show');initT()}
 
 function confNew(){$('mt').textContent='Neues Spiel?';$('mm').textContent='Fortschritt geht verloren.';$('mb').textContent='Neues Spiel';mCb=()=>goSetup();$('modal').classList.add('show')}
@@ -461,9 +526,9 @@ function uTotF(i){const p=P[i];if(!p)return;$('totb').style.setProperty('--pc',p
 
 function showRes(){const rk=[...P].map(p=>({...p,total:cT(p.scores)})).sort((a,b)=>b.total-a.total);const pod=$('podium');pod.innerHTML='';const md=['🥇','🥈','🥉'];
 rk.forEach((p,i)=>{pod.innerHTML+=`<div class="rr${i===0?' w':''}" style="border-color:${i===0?'var(--gold)':p.color+'33'}"><div class="rr-k" style="color:${i<3?['var(--gold)','var(--tx2)','var(--orange)'][i]:'var(--tx3)'}">${i+1}</div><div class="rr-d" style="background:${p.color}"></div><div class="rr-n">${p.name}</div><div class="rr-s" style="color:${p.color}">${p.total}</div><div class="rr-m">${md[i]||''}</div></div>`});
-$('rsub').textContent=`${rk[0].name} gewinnt mit ${rk[0].total} Punkten!`;showScr('result');confetti()}
+$('rsub').textContent=`${rk[0].name} gewinnt mit ${rk[0].total} Punkten!`;$('game').classList.remove('table-mode');$('game').style.transform='';showScr('result');confetti()}
 
-function playAgain(){const nm=gN()||[];clS();$('pass').classList.remove('show');pinC=0;$('plist').innerHTML='';
+function playAgain(){const nm=gN()||[];clS();$('pass').classList.remove('show');$('game').classList.remove('table-mode');$('game').style.transform='';pinC=0;$('plist').innerHTML='';
 if(nm.length)nm.forEach(n=>addP(n));else{addP('Spieler 1');addP('Spieler 2')}disAll();chkRes();showScr('setup');showTab('game')}
 
 // History
@@ -496,7 +561,7 @@ function clHD(){$('ov-hd').classList.remove('show')}
 
 // Nav
 function showScr(id){['setup','game','result'].forEach(s=>$(s).classList.toggle('active',s===id))}
-function showTab(t){['ov-rules','ov-scores','ov-history','ov-settings','ov-hd','ov-lobby'].forEach(id=>$(id).classList.remove('show'));
+function showTab(t){['ov-rules','ov-scores','ov-history','ov-settings','ov-hd','ov-lobby','ov-table'].forEach(id=>$(id).classList.remove('show'));
 ['ng','ns','nh','nru'].forEach(n=>$(n).classList.remove('on'));hSrc='g';
 if(t==='rules'){$('ov-rules').classList.add('show');$('nru').classList.add('on')}
 else if(t==='scores'){rStand();$('ov-scores').classList.add('show');$('ns').classList.add('on')}
@@ -507,10 +572,10 @@ else $('ng').classList.add('on')}
 function rStand(){const el=$('sov');el.innerHTML='';[...P].map(p=>({...p,total:cT(p.scores)})).sort((a,b)=>b.total-a.total).forEach((p,i)=>{const us=uS(p.scores),sk=Object.values(p.scores).filter(v=>v===0).length;
 el.innerHTML+=`<div class="sc" style="border-color:${p.color}22"><div class="sc-r" style="color:${p.color}">${i+1}</div><div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div class="sc-f"><div class="sc-n">${p.name}</div><div class="sc-m">${p.round}/13 · Bonus: ${us}/63${sk?' · '+sk+'✗':''}</div></div><div class="sc-t" style="color:${p.color}">${p.total}</div></div>`})}
 
-function tOpt(k){O[k]=O[k]?0:1;sO();syncSw();if(k==='tip'){if(!O.tip){$('tipa').classList.remove('show');document.querySelectorAll('.die.hint-d,.sr.best').forEach(d=>{d.classList.remove('hint-d');d.classList.remove('best')})}else if(rol)doTip()}if(k==='prev'){rRows();if(rol&&O.tip)doTip()}}
-function syncSw(){$('sw1').className='sw'+(O.tip?' on':'');$('sw2').className='sw'+(O.prev?' on':'');$('sw3').className='sw'+(O.vib?' on':'')}
+function tOpt(k){if(k==='tbl'){TBL.enabled=TBL.enabled?0:1;saveTbl();syncSw();applyRotation();return}O[k]=O[k]?0:1;sO();syncSw();if(k==='tip'){if(!O.tip){$('tipa').classList.remove('show');document.querySelectorAll('.die.hint-d,.sr.best').forEach(d=>{d.classList.remove('hint-d');d.classList.remove('best')})}else if(rol)doTip()}if(k==='prev'){rRows();if(rol&&O.tip)doTip()}}
+function syncSw(){$('sw1').className='sw'+(O.tip?' on':'');$('sw2').className='sw'+(O.prev?' on':'');$('sw3').className='sw'+(O.vib?' on':'');$('sw4').className='sw'+(TBL.enabled?' on':'');$('si-tbl').style.display=NET?'none':''}
 
-function goSetup(){clS();$('pass').classList.remove('show');pinC=0;$('plist').innerHTML='';const nm=gN();if(nm?.length)nm.forEach(n=>addP(n));else{addP('Spieler 1');addP('Spieler 2')}disAll();chkRes();showScr('setup');showTab('game')}
+function goSetup(){clS();$('pass').classList.remove('show');$('game').classList.remove('table-mode');$('game').style.transform='';pinC=0;$('plist').innerHTML='';const nm=gN();if(nm?.length)nm.forEach(n=>addP(n));else{addP('Spieler 1');addP('Spieler 2')}disAll();chkRes();showScr('setup');showTab('game')}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600)}
 function confetti(){for(let i=0;i<60;i++)setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.cssText=`left:${Math.random()*100}vw;top:-12px;background:${CO[~~(Math.random()*CO.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.5}s;border-radius:${Math.random()>.5?'50%':'2px'}`;document.body.appendChild(el);setTimeout(()=>el.remove(),3500)},i*50)}
 function chkRes(){const s=ld(),btn=$('btn-res');if(s?.P?.length){btn.style.display='';btn.textContent=`▶ Fortsetzen · Runde ${Math.min(Math.max(...s.P.map(p=>p.round))+1,13)}`}else btn.style.display='none';$('btn-h0').style.display=gH().length?'':'none'}
@@ -697,8 +762,238 @@ function stopScan(){
   if(scanAF){cancelAnimationFrame(scanAF);scanAF=0}
 }
 
+// ═════════════════════════════════════
+// VIRTUAL TABLE (TISCH-MODUS)
+// ═════════════════════════════════════
+
+let TBL={enabled:!1,seats:{}};
+// seats: { playerIndex: { side: 'top'|'bottom'|'left'|'right', slot: 0|1 } }
+// Rotation per side: bottom=0° (facing screen), top=180°, left=90°, right=270°
+const SIDE_ROT={bottom:0,top:180,left:90,right:270};
+const SIDE_MAX=2; // max 2 players per side (up to 8 total, but 6 player max)
+let tblDrag=null,tblGhost=null;
+
+function loadTbl(){try{const d=JSON.parse(localStorage.getItem('k4t'));if(d)TBL=d}catch(e){}}
+function saveTbl(){try{localStorage.setItem('k4t',JSON.stringify(TBL))}catch(e){}}
+
+function openTableSetup(){
+  const inp=[...document.querySelectorAll('#plist input')];
+  if(!inp.length){toast('Min. 1 Spieler');return}
+  loadTbl();
+  $('ov-table').classList.add('show');
+  syncTblSw();
+  renderTable();
+}
+
+function closeTable(){$('ov-table').classList.remove('show')}
+
+function tblToggle(){TBL.enabled=!TBL.enabled;syncTblSw();saveTbl()}
+function syncTblSw(){$('swTbl').className='sw'+(TBL.enabled?' on':'')}
+
+function getSetupPlayers(){
+  const inp=[...document.querySelectorAll('#plist input')];
+  return inp.map((el,i)=>({name:el.value.trim()||`Spieler ${i+1}`,color:CO[i],idx:i}));
+}
+
+function renderTable(){
+  const players=getSetupPlayers();
+  // Build slots for each side
+  ['top','bottom','left','right'].forEach(side=>{
+    const el=$('tbl'+side.charAt(0).toUpperCase()+side.slice(1));
+    el.innerHTML='';
+    for(let s=0;s<SIDE_MAX;s++){
+      const slot=document.createElement('div');
+      slot.className='tbl-slot';
+      slot.dataset.side=side;
+      slot.dataset.slot=s;
+      const rotDeg=SIDE_ROT[side];
+      slot.innerHTML=`<span class="rot-lbl">${rotDeg}°</span>`;
+      // Drop events
+      slot.addEventListener('dragover',tblDragOver);
+      slot.addEventListener('dragleave',tblDragLeave);
+      slot.addEventListener('drop',tblDrop);
+      // Touch drop target
+      slot.addEventListener('touchmove',e=>e.preventDefault(),{passive:!1});
+      el.appendChild(slot);
+    }
+  });
+
+  // Place seated players
+  Object.entries(TBL.seats).forEach(([pi,seat])=>{
+    const p=players[+pi];
+    if(!p)return;
+    const el=findSlotEl(seat.side,seat.slot);
+    if(el){
+      const chip=mkChip(p);
+      el.appendChild(chip);
+    }
+  });
+
+  // Place unseated players on the bench
+  const bench=$('tblBench');
+  bench.innerHTML='';
+  players.forEach(p=>{
+    if(TBL.seats[p.idx])return;
+    const chip=mkChip(p);
+    bench.appendChild(chip);
+  });
+
+  updateTblHint(players);
+}
+
+function mkChip(p){
+  const chip=document.createElement('div');
+  chip.className='tbl-chip';
+  chip.style.background=`linear-gradient(135deg,${p.color},color-mix(in srgb,${p.color} 60%,#000))`;
+  chip.dataset.pidx=p.idx;
+  chip.draggable=!0;
+  chip.innerHTML=`<div class="chip-dot" style="background:${p.color};box-shadow:0 0 6px ${p.color}"></div><div class="chip-nm">${p.name}</div>`;
+  // Drag events (pointer-based for touch + mouse)
+  chip.addEventListener('dragstart',tblDragStart);
+  chip.addEventListener('dragend',tblDragEnd);
+  // Touch events for mobile
+  chip.addEventListener('touchstart',tblTouchStart,{passive:!1});
+  chip.addEventListener('touchmove',tblTouchMove,{passive:!1});
+  chip.addEventListener('touchend',tblTouchEnd);
+  return chip;
+}
+
+function findSlotEl(side,slot){
+  return document.querySelector(`.tbl-slot[data-side="${side}"][data-slot="${slot}"]`);
+}
+
+function tblDragStart(e){
+  tblDrag={pidx:+e.target.dataset.pidx};
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  // Remove from old seat
+  removeSeat(tblDrag.pidx);
+}
+function tblDragEnd(e){
+  e.target.classList.remove('dragging');
+  tblDrag=null;
+  renderTable();
+}
+function tblDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('over');
+}
+function tblDragLeave(e){e.currentTarget.classList.remove('over')}
+function tblDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('over');
+  if(!tblDrag)return;
+  const side=e.currentTarget.dataset.side;
+  const slot=+e.currentTarget.dataset.slot;
+  // Check if slot is already occupied
+  const existing=Object.entries(TBL.seats).find(([k,s])=>s.side===side&&s.slot===slot);
+  if(existing){
+    // Replace: move existing player to bench
+    delete TBL.seats[existing[0]];
+  }
+  TBL.seats[tblDrag.pidx]={side,slot};
+  saveTbl();
+  tblDrag=null;
+  renderTable();
+}
+
+// Touch-based drag for mobile
+function tblTouchStart(e){
+  e.preventDefault();
+  const chip=e.currentTarget;
+  const touch=e.touches[0];
+  const pidx=+chip.dataset.pidx;
+  tblDrag={pidx,startX:touch.clientX,startY:touch.clientY,chip};
+  // Create ghost
+  tblGhost=chip.cloneNode(!0);
+  tblGhost.className='tbl-chip tbl-ghost';
+  tblGhost.style.cssText=chip.style.cssText+`position:fixed;z-index:999;pointer-events:none;width:48px;height:48px;opacity:.85;`;
+  tblGhost.style.left=(touch.clientX-24)+'px';
+  tblGhost.style.top=(touch.clientY-24)+'px';
+  document.body.appendChild(tblGhost);
+  chip.classList.add('dragging');
+  removeSeat(pidx);
+}
+function tblTouchMove(e){
+  e.preventDefault();
+  if(!tblDrag||!tblGhost)return;
+  const touch=e.touches[0];
+  tblGhost.style.left=(touch.clientX-24)+'px';
+  tblGhost.style.top=(touch.clientY-24)+'px';
+  // Highlight slot under finger
+  document.querySelectorAll('.tbl-slot').forEach(sl=>{
+    const r=sl.getBoundingClientRect();
+    if(touch.clientX>=r.left&&touch.clientX<=r.right&&touch.clientY>=r.top&&touch.clientY<=r.bottom){
+      sl.classList.add('over');
+    }else{
+      sl.classList.remove('over');
+    }
+  });
+}
+function tblTouchEnd(e){
+  if(!tblDrag)return;
+  const chip=tblDrag.chip;
+  chip?.classList.remove('dragging');
+  if(tblGhost){tblGhost.remove();tblGhost=null}
+  // Find slot under last touch position
+  const touch=e.changedTouches[0];
+  let placed=!1;
+  document.querySelectorAll('.tbl-slot').forEach(sl=>{
+    sl.classList.remove('over');
+    const r=sl.getBoundingClientRect();
+    if(!placed&&touch.clientX>=r.left&&touch.clientX<=r.right&&touch.clientY>=r.top&&touch.clientY<=r.bottom){
+      const side=sl.dataset.side;
+      const slot=+sl.dataset.slot;
+      const existing=Object.entries(TBL.seats).find(([k,s])=>s.side===side&&s.slot===slot);
+      if(existing)delete TBL.seats[existing[0]];
+      TBL.seats[tblDrag.pidx]={side,slot};
+      placed=!0;
+    }
+  });
+  saveTbl();
+  tblDrag=null;
+  renderTable();
+}
+
+function removeSeat(pidx){delete TBL.seats[pidx]}
+
+function updateTblHint(players){
+  const seated=Object.keys(TBL.seats).length;
+  const hint=$('tblHint');
+  if(seated===players.length&&seated>0){
+    hint.innerHTML='<span class="em">✓ Alle Spieler platziert!</span> Drehung aktiv.';
+    if(!TBL.enabled){TBL.enabled=!0;syncTblSw();saveTbl()}
+  }else if(seated>0){
+    hint.textContent=`${seated}/${players.length} platziert — ziehe alle Spieler an den Tisch.`;
+  }else{
+    hint.textContent='Ziehe Spieler aus der Bank an eine Tischseite.';
+  }
+}
+
+function applyTable(){
+  const players=getSetupPlayers();
+  const seated=Object.keys(TBL.seats).length;
+  if(TBL.enabled&&seated<players.length){
+    toast('Platziere alle Spieler!');return;
+  }
+  saveTbl();
+  closeTable();
+  toast(TBL.enabled?'Tisch-Modus aktiv ✓':'Tisch-Modus aus');
+}
+
+function applyRotation(){
+  const g=$('game');
+  if(!TBL.enabled||NET){g.classList.remove('table-mode');g.style.transform='';return}
+  const seat=TBL.seats[ci];
+  if(!seat){g.classList.remove('table-mode');g.style.transform='';return}
+  const deg=SIDE_ROT[seat.side];
+  g.classList.add('table-mode');
+  g.style.transform=deg?`rotate(${deg}deg)`:'';
+}
+
 // INIT
-lO();syncSw();const sNm=gN();if(sNm?.length)sNm.forEach(n=>addP(n));else{addP('Spieler 1');addP('Spieler 2')}chkRes();
+lO();loadTbl();syncSw();const sNm=gN();if(sNm?.length)sNm.forEach(n=>addP(n));else{addP('Spieler 1');addP('Spieler 2')}chkRes();
 </script>
 </body>
 </html>
