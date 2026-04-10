@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🎲 Kniffel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
 <style>
 :root {
   --bg:#0f0e17; --surface:#1a1826; --card:#22203a;
@@ -377,7 +377,7 @@ border-bottom:1px solid var(--border);font-size:11px;flex-shrink:0;cursor:pointe
         </div>
         <div class="s-lbl" style="margin-top:6px">Raum-Code</div>
         <div class="room-box">
-          <input type="text" class="room-input" placeholder="Code eingeben" maxlength="6" id="join-code"
+          <input type="text" class="room-input" placeholder="Code eingeben" maxlength="5" id="join-code"
             oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
           <button class="btn-connect" id="btn-join" onclick="joinRoom()">BEITRETEN</button>
         </div>
@@ -609,11 +609,14 @@ function selectOnlineMode(sub){
 var peer=null, hostConns=[], myConn=null;
 var isHost=false, roomId='', myPlayerIdx=-1;
 var onlinePlayers=[]; // {name, color, peerId, conn}
+var ROOM_CODE_LENGTH=5;
+var HOST_RETRY_MAX=3;
+var _hostRetries=0;
 
 function generateRoomCode(){
   var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   var code='';
-  for(var i=0;i<5;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  for(var i=0;i<ROOM_CODE_LENGTH;i++)code+=chars[Math.floor(Math.random()*chars.length)];
   return code;
 }
 
@@ -621,6 +624,7 @@ function hostRoom(){
   var name=document.getElementById('host-name').value.trim()||'Host';
   document.getElementById('btn-host').disabled=true;
   document.getElementById('btn-host').textContent='VERBINDE...';
+  _hostRetries=0;
   addLog('Erstelle Raum...','info');
 
   roomId=generateRoomCode();
@@ -672,9 +676,15 @@ function hostRoom(){
   peer.on('error',function(err){
     addLog('Peer-Fehler: '+err.type+' - '+err.message,'error');
     if(err.type==='unavailable-id'){
-      addLog('Raum-Code schon vergeben, versuche neuen...','warn');
-      peer.destroy();
-      setTimeout(hostRoom,500);
+      _hostRetries++;
+      if(_hostRetries<HOST_RETRY_MAX){
+        addLog('Raum-Code schon vergeben, versuche neuen... ('+_hostRetries+'/'+HOST_RETRY_MAX+')','warn');
+        peer.destroy();
+        setTimeout(hostRoom,500);
+        return;
+      }else{
+        addLog('Konnte keinen freien Raum-Code finden nach '+HOST_RETRY_MAX+' Versuchen','error');
+      }
     }
     document.getElementById('btn-host').disabled=false;
     document.getElementById('btn-host').textContent='RAUM ERSTELLEN';
@@ -789,7 +799,7 @@ function startOnlineGame(){
 function joinRoom(){
   var name=document.getElementById('join-name').value.trim()||'Spieler';
   var code=document.getElementById('join-code').value.trim().toUpperCase();
-  if(!code||code.length<4){showToast('Bitte gültigen Code eingeben','error');return;}
+  if(!code||code.length!==ROOM_CODE_LENGTH){showToast('Bitte '+ROOM_CODE_LENGTH+'-stelligen Code eingeben','error');return;}
 
   document.getElementById('btn-join').disabled=true;
   document.getElementById('btn-join').textContent='...';
@@ -815,6 +825,9 @@ function joinRoom(){
       addLog('Verbindung Timeout - Raum nicht erreichbar','error');
       document.getElementById('join-status').textContent='Raum nicht gefunden. Prüfe den Code!';
       resetJoinBtn();
+      try{conn.close();}catch(e){}
+      try{peer.destroy();}catch(e){}
+      peer=null;myConn=null;
     },10000);
 
     conn.on('open',function(){
@@ -1466,9 +1479,12 @@ function goSetup(){
 function showToast(msg,type){
   var t=document.getElementById('toast');
   t.textContent=msg;
-  t.className=type==='error'?'show error':'show';
+  t.classList.remove('show','error');
+  void t.offsetWidth; // force reflow
+  if(type==='error'){t.classList.add('show','error');}
+  else{t.classList.add('show');}
   clearTimeout(t._tid);
-  t._tid=setTimeout(function(){t.className='';},2200);
+  t._tid=setTimeout(function(){t.classList.remove('show','error');},2200);
 }
 function spawnConfetti(){for(var i=0;i<50;i++)(function(i){setTimeout(function(){var el=document.createElement('div');el.className='cf';el.style.cssText='left:'+Math.random()*100+'vw;top:-12px;background:'+COLS[Math.floor(Math.random()*COLS.length)]+';width:'+(7+Math.random()*7)+'px;height:'+(7+Math.random()*7)+'px;animation-duration:'+(1.8+Math.random()*2)+'s;animation-delay:'+Math.random()*.6+'s;border-radius:'+(Math.random()>.5?'50%':'2px');document.body.appendChild(el);setTimeout(function(){el.remove();},3500);},i*55);})(i);
 }
