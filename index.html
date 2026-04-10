@@ -302,7 +302,7 @@ nav{display:flex;background:var(--s1);border-top:1px solid var(--brd);flex-shrin
 <div class="s-btns">
 <button class="btn-m grn" id="btn-res" style="display:none" onclick="resumeG()">▶ Fortsetzen</button>
 <button class="btn-m pri" onclick="startLocal()">Lokales Spiel</button>
-<button class="btn-m sec" onclick="openTableSetup()" id="btn-tbl">🪑 Tisch-Aufstellung</button>
+<button class="btn-m sec" onclick="openTableSetup()" id="btn-tbl" aria-label="Tisch-Aufstellung öffnen">🪑 Tisch-Aufstellung</button>
 <button class="btn-m blu" onclick="openLobby()">📡 Online Multiplayer</button>
 <button class="btn-m sec" id="btn-h0" style="display:none" onclick="showHist0()">📜 Spielverlauf</button>
 </div>
@@ -889,7 +889,7 @@ function tblDrop(e){
   // Check if slot is already occupied
   const existing=Object.entries(TBL.seats).find(([k,s])=>s.side===side&&s.slot===slot);
   if(existing){
-    // Swap: move existing player to bench
+    // Replace: move existing player to bench
     delete TBL.seats[existing[0]];
   }
   TBL.seats[tblDrag.pidx]={side,slot};
