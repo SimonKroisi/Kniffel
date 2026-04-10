@@ -225,7 +225,7 @@ transition:transform .5s cubic-bezier(.4,0,.2,1);transform-origin:center center}
     <div class="s-lbl">Spieler</div>
     <div class="p-list" id="plist"></div>
     <button class="btn-add" id="btn-add" onclick="addP()">＋ Spieler hinzufügen</button>
-    <div class="tbl-tog" id="tbl-tog" onclick="toggleTableMode()">
+    <div class="tbl-tog" id="tbl-tog" onclick="toggleTableMode()" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleTableMode()">
       <div>
         <div class="tbl-tog-lbl">🪑 Tischmodus</div>
         <div class="tbl-tog-sub">Bildschirm dreht sich automatisch zum Spieler</div>
@@ -260,7 +260,7 @@ transition:transform .5s cubic-bezier(.4,0,.2,1);transform-origin:center center}
       <div class="sw on" id="hsw"></div><span>Tipp</span>
     </div>
     <button class="btn-roll" id="rbtn" onclick="rollDice()">WÜRFELN (3)</button>
-    <div class="prev-tog" onclick="togglePreview()">
+    <div class="prev-tog" onclick="togglePreview()" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')togglePreview()">
       <div class="sw on" id="psw"></div><span>Vorschau</span>
     </div>
   </div>
@@ -621,7 +621,13 @@ function _startChipDrag(e,chip){
   chip.classList.add('drag');
   _dragState={chip,cx,cy,r:96};
   const move=ev=>_moveChipDrag(ev);
-  const end=ev=>{_endChipDrag(ev);document.removeEventListener('mousemove',move);document.removeEventListener('touchmove',move);document.removeEventListener('mouseup',end);document.removeEventListener('touchend',end);};
+  const end=ev=>{
+    _endChipDrag(ev);
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('mouseup',end);
+    document.removeEventListener('touchend',end);
+  };
   document.addEventListener('mousemove',move);
   document.addEventListener('touchmove',move,{passive:false});
   document.addEventListener('mouseup',end);
@@ -652,10 +658,14 @@ function getTableAngles(){
   });
   return angles;
 }
+function _resetRotatorStyles(rotator){
+  rotator.style.transform='';rotator.style.width='';rotator.style.height='';
+  rotator.style.position='';rotator.style.top='';rotator.style.left='';
+}
 function applyTableRotation(){
   const rotator=document.getElementById('game-rotator');
   if(!rotator)return;
-  if(!tableMode){rotator.style.transform='';rotator.style.width='';rotator.style.height='';rotator.style.position='';rotator.style.top='';rotator.style.left='';return;}
+  if(!tableMode){_resetRotatorStyles(rotator);return;}
   const p=players[cur];
   const seatAngle=p&&p.seatAngle!=null?p.seatAngle:180;
   const rotation=(seatAngle+180)%360;
@@ -765,9 +775,8 @@ function goSetup(){
   if(players.length&&players.some(p=>p.round>0)){if(!confirm('Spiel wirklich abbrechen? Fortschritt geht verloren!'))return;}
   const lastNames=players.length?players.map(p=>p.name):loadPlayerNames();
   document.getElementById('pass').classList.remove('show');
-  // Reset game rotator
   const rotator=document.getElementById('game-rotator');
-  if(rotator)rotator.style.transform='';
+  if(rotator)_resetRotatorStyles(rotator);
   clearState();
   pinpCount=0;
   document.getElementById('plist').innerHTML='';
