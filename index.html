@@ -18,7 +18,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .screen{display:none;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto}
 .screen.active{display:flex}
 
-#setup{align-items:center;justify-content:center;ackground:radial-gradient(ellipse at 50% -10%,#2a1f40 0%,var(--bg) 55%)}
+#setup{align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% -10%,#2a1f40 0%,var(--bg) 55%)}
 .s-logo{font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:4px;color:var(--accent);
 text-shadow:0 0 40px rgba(255,107,53,.35);margin-bottom:2px}
 .s-sub{font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:28px;text-transform:uppercase}
@@ -45,7 +45,7 @@ box-shadow:0 4px 24px rgba(255,107,53,.35);transition:transform .1s}
 .btn-start:active{transform:scale(.97)}
 
 #game{overflow:hidden}
-.g-head{display:flex;align-items:center;gap:8px;padding:9px 14px;ackground:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.g-head{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
 .g-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--accent)}
 .p-tabs{display:flex;gap:5px;flex:1;overflow-x:auto;padding:1px 0}
 .p-tabs::-webkit-scrollbar{display:none}
@@ -128,7 +128,7 @@ border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
 .bbbg{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
 .bbfg{height:100%;background:var(--gold);border-radius:2px;transition:width .4s}
 
-.tot-bar{display:flex;align-items:center;padding:9px 14px;ackground:var(--card);flex-shrink:0;
+.tot-bar{display:flex;align-items:center;padding:9px 14px;background:var(--card);flex-shrink:0;
 border-top:2px solid var(--pc,var(--accent));
 transition:border-color .3s}
 .tot-pname{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;
@@ -188,6 +188,33 @@ transition:opacity .25s,transform .25s;pointer-events:none;z-index:60;white-spac
 
 .cf{position:fixed;pointer-events:none;z-index:200;animation:cfFall linear forwards}
 @keyframes cfFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* ── Tischmodus ──────────────────────────────────────────── */
+.tbl-tog{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;
+background:var(--card);border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:border-color .2s}
+.tbl-tog.on{border-color:var(--accent)}
+.tbl-tog-lbl{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
+.tbl-tog-sub{font-size:10px;color:var(--muted);margin-top:2px}
+#table-viz{display:none;flex-direction:column;align-items:center;gap:10px;padding:8px 0 4px}
+#table-viz.show{display:flex}
+.t-arena{position:relative;width:240px;height:240px;flex-shrink:0;overflow:visible}
+.t-surface{position:absolute;inset:34px;background:var(--card);border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.t-surface-lbl{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.t-chip{position:absolute;width:46px;height:46px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:grab;color:#fff;text-align:center;
+transform:translate(-50%,-50%);touch-action:none;user-select:none;-webkit-user-select:none;transition:box-shadow .15s,transform .15s;overflow:hidden;line-height:1.2;padding:3px;word-break:break-word}
+.t-chip.drag{transform:translate(-50%,-50%) scale(1.2)!important;cursor:grabbing;z-index:10;transition:box-shadow .15s}
+.t-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40px;display:block}
+
+/* ── Game rotator ────────────────────────────────────────── */
+#game{overflow:hidden;position:relative}
+#game-rotator{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;
+transition:transform .5s cubic-bezier(.4,0,.2,1);transform-origin:center center}
+
+/* ── Tischmodus header indicator ────────────────────────── */
+.tbl-hdr{font-size:15px;line-height:1;flex-shrink:0}
+
+/* ── Score preview toggle ───────────────────────────────── */
+.prev-tog{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -198,14 +225,29 @@ transition:opacity .25s,transform .25s;pointer-events:none;z-index:60;white-spac
     <div class="s-lbl">Spieler</div>
     <div class="p-list" id="plist"></div>
     <button class="btn-add" id="btn-add" onclick="addP()">＋ Spieler hinzufügen</button>
+    <div class="tbl-tog" id="tbl-tog" onclick="toggleTableMode()">
+      <div>
+        <div class="tbl-tog-lbl">🪑 Tischmodus</div>
+        <div class="tbl-tog-sub">Bildschirm dreht sich automatisch zum Spieler</div>
+      </div>
+      <div class="sw" id="tsw"></div>
+    </div>
+    <div id="table-viz">
+      <div class="t-arena" id="t-arena">
+        <div class="t-surface"><span class="t-surface-lbl">Tisch</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:center">Chips ziehen zum Anpassen der Sitzposition</div>
+    </div>
     <button class="btn-start" onclick="startGame()">SPIEL STARTEN 🎲</button>
   </div>
 </div>
 
 <div id="game" class="screen">
+  <div id="game-rotator">
   <div class="g-head">
     <div class="g-logo">🎲</div>
     <div class="p-tabs" id="ptabs"></div>
+    <div class="tbl-hdr" id="tbl-hdr" style="display:none">🪑</div>
     <button class="btn-ng" onclick="goSetup()">↺ Neu</button>
   </div>
   <div class="rbar">
@@ -218,6 +260,9 @@ transition:opacity .25s,transform .25s;pointer-events:none;z-index:60;white-spac
       <div class="sw on" id="hsw"></div><span>Tipp</span>
     </div>
     <button class="btn-roll" id="rbtn" onclick="rollDice()">WÜRFELN (3)</button>
+    <div class="prev-tog" onclick="togglePreview()">
+      <div class="sw on" id="psw"></div><span>Vorschau</span>
+    </div>
   </div>
   <div class="sa" id="sa">
     <div class="sh">Oberer Teil</div>
@@ -240,6 +285,7 @@ transition:opacity .25s,transform .25s;pointer-events:none;z-index:60;white-spac
     <button class="nb" id="ns" onclick="showTab('scores')"><span class="ic">📊</span>Stand</button>
     <button class="nb" id="nr" onclick="showTab('rules')"><span class="ic">📖</span>Regeln</button>
   </nav>
+  </div><!-- #game-rotator -->
 </div>
 
 <div id="result" class="screen">
@@ -324,12 +370,13 @@ function calcTotal(sc){let u=0;UPP.forEach(id=>{if(sc[id]!=null)u+=sc[id];});let
 
 let players=[],cur=0;
 let dice=[1,1,1,1,1],held=[false,false,false,false,false];
-let throwsLeft=3,hasRolled=false,autoHint=true;
-let pinpCount=0;
+let throwsLeft=3,hasRolled=false,autoHint=true,autoPreview=true;
+let tableMode=false,pinpCount=0;
+let _dragState=null;
 
 function saveState(){
   const activeScreen=['setup','game','result'].find(s=>document.getElementById(s).classList.contains('active'))||'setup';
-  const state={players,cur,dice,held,throwsLeft,hasRolled,autoHint,activeScreen};
+  const state={players,cur,dice,held,throwsLeft,hasRolled,autoHint,autoPreview,tableMode,activeScreen};
   try{localStorage.setItem('kniffel_state',JSON.stringify(state));}catch(e){}
 }
 function loadState(){
@@ -341,11 +388,15 @@ function loadState(){
     players=s.players;cur=s.cur;dice=s.dice;held=s.held;
     throwsLeft=s.throwsLeft;hasRolled=s.hasRolled;
     if(s.autoHint!=null)autoHint=s.autoHint;
+    if(s.autoPreview!=null)autoPreview=s.autoPreview;
+    if(s.tableMode!=null)tableMode=s.tableMode;
     return s.activeScreen||'game';
   }catch(e){return false;}
 }
 function clearState(){try{localStorage.removeItem('kniffel_state');}catch(e){}
 }
+function savePlayerNames(names){try{localStorage.setItem('kniffel_names',JSON.stringify(names));}catch(e){}}
+function loadPlayerNames(){try{const r=localStorage.getItem('kniffel_names');return r?JSON.parse(r):[];}catch(e){return [];}}
 
 function addP(name=''){
   if(pinpCount>=6){showToast('Max. 6 Spieler');return;}
@@ -357,14 +408,22 @@ function addP(name=''){
   row.innerHTML='<div class="p-dot" style="background:'+col+'"></div><input type="text" placeholder="Spieler '+(i+1)+'" value="'+name+'" maxlength="12" id="pn-'+i+'">'+(i>0?'<button class="btn-rm" onclick="rmP('+i+')">✕</button>':'');
   document.getElementById('plist').appendChild(row);
   document.getElementById('btn-add').style.display=pinpCount>=6?'none':'';
+  document.getElementById('pn-'+i).addEventListener('input',updateTableChipNames);
+  if(tableMode)renderTableViz();
 }
-function rmP(i){document.getElementById('pr-'+i)?.remove();document.getElementById('btn-add').style.display='';}
+function rmP(i){document.getElementById('pr-'+i)?.remove();document.getElementById('btn-add').style.display='';if(tableMode)renderTableViz();}
 function startGame(){
   const inputs=document.querySelectorAll('#plist input');
   if(!inputs.length){showToast('Mindestens 1 Spieler!');return;}
+  const angles=tableMode?getTableAngles():[];
   players=[];let idx=0;
-  inputs.forEach(inp=>{players.push({name:inp.value.trim()||('Spieler '+(idx+1)),color:COLS[idx],round:0,scores:{}});idx++;});
-  cur=0;initTurn();showScreen('game');saveState();
+  inputs.forEach(inp=>{
+    const seatAngle=tableMode&&angles[idx]!=null?angles[idx]:(180);
+    players.push({name:inp.value.trim()||('Spieler '+(idx+1)),color:COLS[idx],round:0,scores:{},seatAngle});
+    idx++;
+  });
+  savePlayerNames(players.map(p=>p.name));
+  cur=0;initTurn();showScreen('game');applyTableRotation();saveState();
 }
 function initTurn(){
   dice=[1,1,1,1,1];held=[false,false,false,false,false];
@@ -375,8 +434,11 @@ function initTurn(){
   b.style.boxShadow='0 3px 16px '+players[cur].color+'44';
   document.getElementById('pips').style.setProperty('--pc',players[cur].color);
   document.getElementById('hsw').className='sw'+(autoHint?' on':'');
+  const tblHdr=document.getElementById('tbl-hdr');
+  if(tblHdr)tblHdr.style.display=tableMode?'':'none';
   buildDiceGrid();updatePips();renderTabs();renderRows();updateTotBar();
   document.getElementById('rnum').textContent=players[cur].round+1;
+  applyTableRotation();
 }
 
 function renderTabs(){
@@ -428,7 +490,7 @@ function rollDice(){
   setTimeout(()=>{
     idxs.forEach(i=>dice[i]=Math.ceil(Math.random()*6));
     throwsLeft--;hasRolled=true;
-    buildDiceGrid();updatePips();updatePreviews();
+    buildDiceGrid();updatePips();if(autoPreview)updatePreviews();
     if(autoHint)doHint();
     if(throwsLeft===0){
       document.getElementById('rbtn').disabled=true;
@@ -440,6 +502,21 @@ function rollDice(){
   },190);
 }
 function toggleHint(){autoHint=!autoHint;document.getElementById('hsw').className='sw'+(autoHint?' on':'');if(!autoHint)document.querySelectorAll('.die').forEach(d=>d.classList.remove('hint'));saveState();}
+function togglePreview(){
+  autoPreview=!autoPreview;
+  document.getElementById('psw').className='sw'+(autoPreview?' on':'');
+  if(!autoPreview){
+    // Clear all previews
+    CATS.forEach(cat=>{
+      const el=document.getElementById('sv-'+cat.id);
+      const row=document.getElementById('sr-'+cat.id);
+      const p=players[cur];
+      if(el&&p.scores[cat.id]==null){el.textContent='—';el.className='sv da';}
+      if(row)row.classList.remove('sug');
+    });
+  }else if(hasRolled){updatePreviews();}
+  saveState();
+}
 function doHint(){
   const c=cnt(dice),mx=Math.max(...Object.values(c));
   if(mx<2)return;
@@ -466,6 +543,136 @@ function scoreEntry(catId){
   showPass(prev,nxt,val);
 }
 function shakeBtn(){const b=document.getElementById('rbtn');b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),350);showToast('Erst würfeln!');}
+
+/* ── Tischmodus functions ─────────────────────────────────────────── */
+function toggleTableMode(){
+  tableMode=!tableMode;
+  const sw=document.getElementById('tsw');
+  const viz=document.getElementById('table-viz');
+  const tog=document.getElementById('tbl-tog');
+  if(sw)sw.className='sw'+(tableMode?' on':'');
+  if(tog)tog.classList.toggle('on',tableMode);
+  if(viz){viz.classList.toggle('show',tableMode);if(tableMode)renderTableViz();}
+}
+function initSetupUI(){
+  const sw=document.getElementById('tsw');
+  const tog=document.getElementById('tbl-tog');
+  const viz=document.getElementById('table-viz');
+  if(sw)sw.className='sw'+(tableMode?' on':'');
+  if(tog)tog.classList.toggle('on',tableMode);
+  if(viz){viz.classList.toggle('show',tableMode);if(tableMode)renderTableViz();}
+}
+function getInputPlayers(){
+  const inputs=document.querySelectorAll('#plist input');
+  const res=[];let idx=0;
+  inputs.forEach(inp=>{res.push({name:inp.value.trim()||('Spieler '+(idx+1)),color:COLS[idx]});idx++;});
+  return res;
+}
+function renderTableViz(){
+  const arena=document.getElementById('t-arena');
+  if(!arena)return;
+  // Save existing chip angles by position
+  const chips=arena.querySelectorAll('.t-chip');
+  const existingAngles=Array.from(chips).map(c=>parseFloat(c.dataset.angle));
+  chips.forEach(el=>el.remove());
+  const ps=getInputPlayers();
+  const N=ps.length;
+  const cx=120,cy=120,r=96;
+  ps.forEach((p,i)=>{
+    const angle=existingAngles[i]!=null&&!isNaN(existingAngles[i])?existingAngles[i]:(360/N)*i;
+    const chip=_makeChip(p,i,angle,cx,cy,r);
+    arena.appendChild(chip);
+  });
+}
+function _makeChip(p,i,angle,cx,cy,r){
+  const rad=angle*Math.PI/180;
+  const x=cx+r*Math.sin(rad);
+  const y=cy-r*Math.cos(rad);
+  const chip=document.createElement('div');
+  chip.className='t-chip';
+  chip.dataset.idx=i;
+  chip.dataset.angle=angle;
+  chip.style.left=x+'px';
+  chip.style.top=y+'px';
+  chip.style.background=p.color;
+  chip.style.boxShadow='0 0 14px '+p.color+'99';
+  chip.innerHTML='<span class="t-chip-name">'+(p.name||('S'+(i+1)))+'</span>';
+  chip.addEventListener('mousedown',e=>_startChipDrag(e,chip));
+  chip.addEventListener('touchstart',e=>_startChipDrag(e,chip),{passive:false});
+  return chip;
+}
+function updateTableChipNames(){
+  if(!tableMode)return;
+  const inputs=document.querySelectorAll('#plist input');
+  const chips=document.querySelectorAll('#t-arena .t-chip');
+  inputs.forEach((inp,idx)=>{
+    if(chips[idx]){
+      const n=inp.value.trim()||('S'+(idx+1));
+      const lbl=chips[idx].querySelector('.t-chip-name');
+      if(lbl)lbl.textContent=n;
+    }
+  });
+}
+function _startChipDrag(e,chip){
+  e.preventDefault();
+  const arena=document.getElementById('t-arena');
+  const rect=arena.getBoundingClientRect();
+  const cx=rect.left+120,cy=rect.top+120;
+  chip.classList.add('drag');
+  _dragState={chip,cx,cy,r:96};
+  const move=ev=>_moveChipDrag(ev);
+  const end=ev=>{_endChipDrag(ev);document.removeEventListener('mousemove',move);document.removeEventListener('touchmove',move);document.removeEventListener('mouseup',end);document.removeEventListener('touchend',end);};
+  document.addEventListener('mousemove',move);
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('mouseup',end);
+  document.addEventListener('touchend',end);
+}
+function _moveChipDrag(e){
+  if(!_dragState)return;
+  e.preventDefault();
+  const pt=e.touches?e.touches[0]:e;
+  const{chip,cx,cy,r}=_dragState;
+  const dx=pt.clientX-cx,dy=pt.clientY-cy;
+  let angle=Math.atan2(dx,-dy)*180/Math.PI;
+  if(angle<0)angle+=360;
+  const rad=angle*Math.PI/180;
+  chip.style.left=(120+r*Math.sin(rad))+'px';
+  chip.style.top=(120-r*Math.cos(rad))+'px';
+  chip.dataset.angle=angle;
+}
+function _endChipDrag(e){
+  if(!_dragState)return;
+  _dragState.chip.classList.remove('drag');
+  _dragState=null;
+}
+function getTableAngles(){
+  const angles=[];
+  document.querySelectorAll('#t-arena .t-chip').forEach(chip=>{
+    angles[parseInt(chip.dataset.idx)]=parseFloat(chip.dataset.angle)||0;
+  });
+  return angles;
+}
+function applyTableRotation(){
+  const rotator=document.getElementById('game-rotator');
+  if(!rotator)return;
+  if(!tableMode){rotator.style.transform='';rotator.style.width='';rotator.style.height='';rotator.style.position='';rotator.style.top='';rotator.style.left='';return;}
+  const p=players[cur];
+  const seatAngle=p&&p.seatAngle!=null?p.seatAngle:180;
+  const rotation=(seatAngle+180)%360;
+  rotator.style.transform='rotate('+rotation+'deg)';
+  if(rotation===90||rotation===270){
+    const game=document.getElementById('game');
+    const vw=game.offsetWidth,vh=game.offsetHeight;
+    rotator.style.position='absolute';
+    rotator.style.width=vh+'px';
+    rotator.style.height=vw+'px';
+    rotator.style.left=((vw-vh)/2)+'px';
+    rotator.style.top=((vh-vw)/2)+'px';
+  }else{
+    rotator.style.position='';rotator.style.width='';rotator.style.height='';rotator.style.left='';rotator.style.top='';
+  }
+}
+/* ────────────────────────────────────────────────────────────────── */
 
 function showPass(pi,ni,val){
   const p=players[pi],n=players[ni];
@@ -499,7 +706,7 @@ function renderRows(viewP){
     });
   });
   updateBonus(p.scores);
-  if(isAct&&hasRolled)updatePreviews();
+  if(isAct&&hasRolled&&autoPreview)updatePreviews();
 }
 function updatePreviews(){
   const p=players[cur];
@@ -556,8 +763,18 @@ function renderStandings(){
 }
 function goSetup(){
   if(players.length&&players.some(p=>p.round>0)){if(!confirm('Spiel wirklich abbrechen? Fortschritt geht verloren!'))return;}
+  const lastNames=players.length?players.map(p=>p.name):loadPlayerNames();
   document.getElementById('pass').classList.remove('show');
+  // Reset game rotator
+  const rotator=document.getElementById('game-rotator');
+  if(rotator)rotator.style.transform='';
   clearState();
+  pinpCount=0;
+  document.getElementById('plist').innerHTML='';
+  const names=lastNames.length>=2?lastNames:loadPlayerNames();
+  if(names.length>=2){names.forEach(n=>addP(n));}
+  else{addP('Spieler 1');addP('Spieler 2');}
+  initSetupUI();
   showScreen('setup');showTab('game');
 }
 
@@ -580,13 +797,20 @@ function spawnConfetti(){for(let i=0;i<50;i++)setTimeout(()=>{const el=document.
       b.style.boxShadow='0 3px 16px '+players[cur].color+'44';
       document.getElementById('pips').style.setProperty('--pc',players[cur].color);
       document.getElementById('hsw').className='sw'+(autoHint?' on':'');
+      document.getElementById('psw').className='sw'+(autoPreview?' on':'');
+      const tblHdr=document.getElementById('tbl-hdr');
+      if(tblHdr)tblHdr.style.display=tableMode?'':'none';
       buildDiceGrid();updatePips();renderTabs();renderRows();updateTotBar();
       document.getElementById('rnum').textContent=players[cur].round+1;
+      applyTableRotation();
     }else if(restored==='result'){
       showResult();
     }
   }else{
-    addP('Spieler 1');addP('Spieler 2');
+    const savedNames=loadPlayerNames();
+    if(savedNames.length>=2){savedNames.forEach(n=>addP(n));}
+    else{addP('Spieler 1');addP('Spieler 2');}
+    initSetupUI();
   }
 })();
 </script>
