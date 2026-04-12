@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <style>
 :root{--bg:#09090b;--s1:#131316;--s2:#1c1c22;--s3:#26262e;--accent:#c084fc;--accent2:#a855f7;--accent3:#7c3aed;--gold:#fbbf24;--green:#34d399;--red:#fb7185;--blue:#60a5fa;--orange:#fb923c;--pink:#f472b6;--cyan:#22d3ee;--tx:#fafafa;--tx2:#a1a1aa;--tx3:#71717a;--brd:#27272a}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -183,19 +184,23 @@ nav{display:flex;background:var(--s1);border-top:1px solid var(--brd);flex-shrin
 .lob{padding:20px}
 .lob-t{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;text-align:center;margin-bottom:4px}
 .lob-s{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:20px}
-.code-box{background:var(--s1);border:1.5px solid var(--blue);border-radius:16px;padding:16px;margin-bottom:16px}
-.code-lbl{font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-bottom:8px;text-align:center}
-.code-qr{display:flex;justify-content:center;margin-bottom:10px}
-.code-qr canvas{border-radius:8px;max-width:200px;width:100%;height:auto}
-.code-txt{font-family:'Space Grotesk',monospace;font-size:9px;color:var(--tx3);word-break:break-all;line-height:1.3;max-height:56px;overflow-y:auto;padding:8px;background:var(--s2);border-radius:8px;margin-bottom:8px;user-select:all;-webkit-user-select:all}
-.code-acts{display:flex;gap:6px}
-.code-btn{flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px}
+.lob-choose{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.room-code-box{background:var(--s1);border:1.5px solid var(--accent);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center}
+.room-code-lbl{font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:3px;font-weight:700;margin-bottom:8px}
+.room-code{font-family:'Space Grotesk',monospace;font-size:36px;font-weight:900;letter-spacing:8px;color:var(--tx);padding:8px 0;user-select:all;-webkit-user-select:all}
+.code-qr{display:flex;justify-content:center;margin:12px 0}
+.code-qr canvas{border-radius:8px;max-width:160px;width:100%;height:auto}
+.code-acts{display:flex;gap:6px;justify-content:center}
+.code-btn{flex:0 1 140px;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px}
 .code-btn:active{transform:scale(.96)}
 .code-btn.cp{background:var(--blue);color:#fff}
 .code-btn.sh{background:var(--green);color:#fff}
-.lob-or{font-size:11px;color:var(--tx3);text-align:center;margin:14px 0;font-weight:600}
-.lob-in{width:100%;background:var(--s2);border:1.5px solid var(--brd);border-radius:12px;padding:12px;color:var(--tx);font-family:'Inter',sans-serif;font-size:12px;resize:vertical;min-height:50px;margin-bottom:8px;outline:none}
-.lob-in:focus{border-color:var(--blue)}
+.join-box{background:var(--s1);border:1.5px solid var(--brd);border-radius:16px;padding:20px;margin-bottom:16px}
+.join-input{width:100%;background:var(--s2);border:2px solid var(--brd);border-radius:14px;padding:16px;color:var(--tx);font-family:'Space Grotesk',monospace;font-size:28px;font-weight:900;letter-spacing:8px;text-align:center;outline:none;margin-bottom:12px;text-transform:uppercase}
+.join-input:focus{border-color:var(--blue)}
+.join-input::placeholder{color:var(--tx3);font-size:14px;letter-spacing:2px;font-weight:600}
+.join-acts{display:flex;gap:6px}
+.lob-status{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:12px;font-weight:600;min-height:18px}
 .lob-acts{display:flex;gap:6px;margin-bottom:8px}
 .lob-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px}
 .lob-btn:active{transform:scale(.97)}
@@ -403,7 +408,7 @@ function uS(s){let u=0;UP.forEach(id=>{if(s[id]!=null)u+=s[id]});return u}
 let P=[],ci=0,dice=[1,1,1,1,1],held=[0,0,0,0,0],tL=3,rol=!1,pinC=0,rling=!1;
 let O={tip:1,prev:1,vib:1},mCb=null,hSrc='g';
 let NET=!1,myId='',isHost=!1,mySl=-1,peers={},lobP=[],scanStream=null,scanAF=0;
-const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+let myPeer=null,roomCode='',netTimeout=null,heartbeatIv=null;
 const SK='k4s',HK='k4h',NK='k4n',OK='k4o';
 function sv(){if(NET)return;try{localStorage.setItem(SK,JSON.stringify({P,ci,dice,held,tL,rol,v:1}))}catch(e){}}
 function ld(){try{const s=JSON.parse(localStorage.getItem(SK));if(s?.v&&s.P?.length&&!s.P.every(p=>p.round>=13))return s;return null}catch(e){return null}}
@@ -434,7 +439,7 @@ function sRB(){const c=P[ci]?.color||'var(--accent)';$('rbtn').style.background=
 function uTT(){const t=$('ttag');if(NET){t.textContent=P[ci]?.name+(mySl===ci?' (Du)':'');t.style.background=P[ci]?.color+'22';t.style.color=P[ci]?.color;t.classList.add('show')}else t.classList.remove('show')}
 function myT(){return!NET||mySl===ci}
 
-function rTabs(){const el=$('ptabs');el.innerHTML='';P.forEach((p,i)=>{const d=document.createElement('div');d.className='p-tab'+(i===ci?' on':'')+(NET&&i===mySl?' me':'');d.style.setProperty('--pc',p.color);d.innerHTML=`<div class="td" style="background:${p.color}"></div><span>${p.name}</span><span class="ts">${cT(p.scores)}</span>`;d.onclick=()=>{rRows(i);uTotF(i)};el.appendChild(d)})}
+function rTabs(){const el=$('ptabs');el.innerHTML='';P.forEach((p,i)=>{const d=document.createElement('div');d.className='p-tab'+(i===ci?' on':'')+(NET&&i===mySl?' me':'');d.style.setProperty('--pc',p.color);d.innerHTML=`<div class="td" style="background:${p.color}"></div><span>${esc(p.name)}</span><span class="ts">${cT(p.scores)}</span>`;d.onclick=()=>{rRows(i);uTotF(i)};el.appendChild(d)})}
 
 function bD(){const g=$('dtray');g.innerHTML='';const ok=myT();
 dice.forEach((v,i)=>{const d=document.createElement('div');d.className='die'+(held[i]?' held':'')+(!ok?' nope':'');d.style.setProperty('--pc',P[ci]?.color||'var(--accent)');
@@ -525,7 +530,7 @@ function uTot(){uTotF(ci)}
 function uTotF(i){const p=P[i];if(!p)return;$('totb').style.setProperty('--pc',p.color);$('totn').textContent=p.name;$('totn').style.color=p.color;$('totv').textContent=cT(p.scores)}
 
 function showRes(){const rk=[...P].map(p=>({...p,total:cT(p.scores)})).sort((a,b)=>b.total-a.total);const pod=$('podium');pod.innerHTML='';const md=['🥇','🥈','🥉'];
-rk.forEach((p,i)=>{pod.innerHTML+=`<div class="rr${i===0?' w':''}" style="border-color:${i===0?'var(--gold)':p.color+'33'}"><div class="rr-k" style="color:${i<3?['var(--gold)','var(--tx2)','var(--orange)'][i]:'var(--tx3)'}">${i+1}</div><div class="rr-d" style="background:${p.color}"></div><div class="rr-n">${p.name}</div><div class="rr-s" style="color:${p.color}">${p.total}</div><div class="rr-m">${md[i]||''}</div></div>`});
+rk.forEach((p,i)=>{pod.innerHTML+=`<div class="rr${i===0?' w':''}" style="border-color:${i===0?'var(--gold)':p.color+'33'}"><div class="rr-k" style="color:${i<3?['var(--gold)','var(--tx2)','var(--orange)'][i]:'var(--tx3)'}">${i+1}</div><div class="rr-d" style="background:${p.color}"></div><div class="rr-n">${esc(p.name)}</div><div class="rr-s" style="color:${p.color}">${p.total}</div><div class="rr-m">${md[i]||''}</div></div>`});
 $('rsub').textContent=`${rk[0].name} gewinnt mit ${rk[0].total} Punkten!`;$('game').classList.remove('table-mode');$('game').style.transform='';showScr('result');confetti()}
 
 function playAgain(){const nm=gN()||[];clS();$('pass').classList.remove('show');$('game').classList.remove('table-mode');$('game').style.transform='';pinC=0;$('plist').innerHTML='';
@@ -536,15 +541,15 @@ function rHist(){const h=gH(),el=$('hlist');el.innerHTML='';
 if(!h.length){el.innerHTML='<div style="text-align:center;padding:48px 20px;color:var(--tx3)"><div style="font-size:40px;margin-bottom:12px;opacity:.5">📜</div><div style="font-size:13px">Noch keine Spiele.</div></div>';return}
 h.forEach((g,gi)=>{const d=new Date(g.date),ds=d.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
 const w=g.players.reduce((a,b)=>a.total>b.total?a:b);const c=document.createElement('div');c.className='hc';
-c.innerHTML=`<div class="hc-t"><div class="hc-d">${ds}</div><div class="hc-w" style="background:${w.color}15;color:${w.color}">🏆 ${w.name} · ${w.total}</div></div><div class="hc-ps">${g.players.map(p=>`<div class="hc-p"><span style="width:6px;height:6px;border-radius:50%;background:${p.color};flex-shrink:0"></span>${p.name} <span style="font-family:'Space Grotesk';font-weight:700;color:${p.color}">${p.total}</span></div>`).join('')}</div>`;
+c.innerHTML=`<div class="hc-t"><div class="hc-d">${ds}</div><div class="hc-w" style="background:${w.color}15;color:${w.color}">🏆 ${esc(w.name)} · ${w.total}</div></div><div class="hc-ps">${g.players.map(p=>`<div class="hc-p"><span style="width:6px;height:6px;border-radius:50%;background:${p.color};flex-shrink:0"></span>${esc(p.name)} <span style="font-family:'Space Grotesk';font-weight:700;color:${p.color}">${p.total}</span></div>`).join('')}</div>`;
 c.onclick=()=>showHD(gi);el.appendChild(c)});
 const cb=document.createElement('button');cb.className='sb dng';cb.style.marginTop='16px';cb.textContent='🗑 Verlauf löschen';
 cb.onclick=()=>{$('mt').textContent='Verlauf löschen?';$('mm').textContent='Alle Spiele werden gelöscht.';$('mb').textContent='Löschen';mCb=()=>{localStorage.removeItem(HK);rHist();toast('Gelöscht')};$('modal').classList.add('show')};el.appendChild(cb)}
 
 function showHD(gi){const g=gH()[gi];if(!g)return;const el=$('hdet');el.innerHTML='';const d=new Date(g.date),ds=d.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})+', '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
 const w=g.players.reduce((a,b)=>a.total>b.total?a:b);
-let html=`<div class="hd-h"><div style="font-size:32px">🏆</div><div style="font-family:'Space Grotesk';font-size:24px;font-weight:700;color:${w.color}">${w.name}</div><div style="font-size:12px;color:var(--tx3)">${w.total} Pkt. · ${ds}</div></div>`;
-html+=`<div class="hd-tabs">${g.players.map((p,i)=>`<div class="hd-tab${i===0?' on':''}" style="--hc:${p.color}" onclick="swHP(${gi},${i})">${p.name} <span style="font-family:'Space Grotesk';font-weight:700">${p.total}</span></div>`).join('')}</div><div id="hdtw"></div>`;
+let html=`<div class="hd-h"><div style="font-size:32px">🏆</div><div style="font-family:'Space Grotesk';font-size:24px;font-weight:700;color:${w.color}">${esc(w.name)}</div><div style="font-size:12px;color:var(--tx3)">${w.total} Pkt. · ${ds}</div></div>`;
+html+=`<div class="hd-tabs">${g.players.map((p,i)=>`<div class="hd-tab${i===0?' on':''}" style="--hc:${p.color}" onclick="swHP(${gi},${i})">${esc(p.name)} <span style="font-family:'Space Grotesk';font-weight:700">${p.total}</span></div>`).join('')}</div><div id="hdtw"></div>`;
 el.innerHTML=html;rHP(g,0);$('ov-hd').classList.add('show')}
 
 function rHP(g,pi){const p=g.players[pi],el=$('hdtw');let h='<div class="hd-tbl">';let us=0;
@@ -570,7 +575,7 @@ else if(t==='settings'){$('sgi').textContent=P.length?P.map(p=>p.name).join(', '
 else $('ng').classList.add('on')}
 
 function rStand(){const el=$('sov');el.innerHTML='';[...P].map(p=>({...p,total:cT(p.scores)})).sort((a,b)=>b.total-a.total).forEach((p,i)=>{const us=uS(p.scores),sk=Object.values(p.scores).filter(v=>v===0).length;
-el.innerHTML+=`<div class="sc" style="border-color:${p.color}22"><div class="sc-r" style="color:${p.color}">${i+1}</div><div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div class="sc-f"><div class="sc-n">${p.name}</div><div class="sc-m">${p.round}/13 · Bonus: ${us}/63${sk?' · '+sk+'✗':''}</div></div><div class="sc-t" style="color:${p.color}">${p.total}</div></div>`})}
+el.innerHTML+=`<div class="sc" style="border-color:${p.color}22"><div class="sc-r" style="color:${p.color}">${i+1}</div><div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div class="sc-f"><div class="sc-n">${esc(p.name)}</div><div class="sc-m">${p.round}/13 · Bonus: ${us}/63${sk?' · '+sk+'✗':''}</div></div><div class="sc-t" style="color:${p.color}">${p.total}</div></div>`})}
 
 function tOpt(k){if(k==='tbl'){TBL.enabled=TBL.enabled?0:1;saveTbl();syncSw();applyRotation();return}O[k]=O[k]?0:1;sO();syncSw();if(k==='tip'){if(!O.tip){$('tipa').classList.remove('show');document.querySelectorAll('.die.hint-d,.sr.best').forEach(d=>{d.classList.remove('hint-d');d.classList.remove('best')})}else if(rol)doTip()}if(k==='prev'){rRows();if(rol&&O.tip)doTip()}}
 function syncSw(){$('sw1').className='sw'+(O.tip?' on':'');$('sw2').className='sw'+(O.prev?' on':'');$('sw3').className='sw'+(O.vib?' on':'');$('sw4').className='sw'+(TBL.enabled?' on':'');$('si-tbl').style.display=NET?'none':''}
@@ -581,128 +586,200 @@ function confetti(){for(let i=0;i<60;i++)setTimeout(()=>{const el=document.creat
 function chkRes(){const s=ld(),btn=$('btn-res');if(s?.P?.length){btn.style.display='';btn.textContent=`▶ Fortsetzen · Runde ${Math.min(Math.max(...s.P.map(p=>p.round))+1,13)}`}else btn.style.display='none';$('btn-h0').style.display=gH().length?'':'none'}
 
 // ═════════════════════════════════════
-// WEBRTC ONLINE MULTIPLAYER
+// ONLINE MULTIPLAYER (PeerJS)
 // ═════════════════════════════════════
 
-function uid(){return Math.random().toString(36).slice(2,10)}
+function uid(){const a=new Uint8Array(6);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(36).padStart(2,'0')).join('').slice(0,8)}
+function mkRoom(){const a=new Uint8Array(3);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('').toUpperCase()}
+const PEER_PREFIX='kniffel-v2-';
 
 function openLobby(){
-  myId=uid();isHost=!0;NET=!0;mySl=0;lobP=[];peers={};
-  const nm=($('pn-0')?.value||'').trim()||'Spieler 1';
-  lobP.push({id:myId,name:nm,color:CO[0],slot:0});
-  renderLob();$('ov-lobby').classList.add('show');
+  myId=uid();isHost=!0;NET=!1;mySl=0;lobP=[];peers={};roomCode='';
+  renderLobChoose();$('ov-lobby').classList.add('show');
 }
 
-function renderLob(){
+function renderLobChoose(){
   const el=$('lobbody');
-  let h=`<div class="lob"><div class="lob-t">${isHost?'📡 Du bist Host':'📡 Beitreten'}</div>`;
-  h+=`<div class="lob-s">${isHost?'Teile den QR-Code oder den Text-Code':'Scanne oder füge den Code des Hosts ein'}</div>`;
-  h+=`<div id="offerBox"></div>`;
-  h+=`<div class="lob-or">── Code einfügen ──</div>`;
-  h+=`<textarea class="lob-in" id="pasteIn" placeholder="Code hier einfügen…"></textarea>`;
-  h+=`<div class="lob-acts"><button class="lob-btn con" id="conBtn" onclick="processCode()">🔗 Verbinden</button><button class="lob-btn scan" onclick="startScan()">📷 QR scannen</button></div>`;
-  h+=`<div class="lob-pl"><div class="lbl">Spieler im Raum</div><div id="lplist"></div></div>`;
-  h+=`<button class="lob-start${isHost&&lobP.length>=2?' show':''}" id="lobStart" onclick="startOnl()">Spiel starten 🎲</button>`;
-  h+=`<button class="lob-back" onclick="leaveLob()">← Zurück</button></div>`;
-  el.innerHTML=h;
+  el.innerHTML=`<div class="lob">
+    <div class="lob-t">📡 Online Multiplayer</div>
+    <div class="lob-s">Spiele Kniffel mit Freunden über das Internet</div>
+    <div class="lob-choose">
+      <button class="btn-m pri" onclick="hostGame()">🏠 Raum erstellen</button>
+      <button class="btn-m blu" onclick="showJoin()">🔗 Raum beitreten</button>
+    </div>
+    <button class="lob-back" onclick="leaveLob()">← Zurück</button>
+  </div>`;
+}
+
+function hostGame(){
+  isHost=!0;roomCode=mkRoom();
+  const nm=($('pn-0')?.value||'').trim()||'Spieler 1';
+  myId=uid();lobP=[{id:myId,name:nm,color:CO[0],slot:0}];peers={};
+  renderLobHost();connectPeer(PEER_PREFIX+roomCode);
+}
+
+function renderLobHost(){
+  const el=$('lobbody');
+  el.innerHTML=`<div class="lob">
+    <div class="lob-t">🏠 Dein Raum</div>
+    <div class="lob-s">Teile den Raum-Code mit deinen Mitspielern</div>
+    <div class="room-code-box">
+      <div class="room-code-lbl">RAUM-CODE</div>
+      <div class="room-code" id="roomCodeDisplay">${esc(roomCode)}</div>
+      <div class="code-qr"><canvas id="qrCvs"></canvas></div>
+      <div class="code-acts">
+        <button class="code-btn cp" onclick="cpRoom()">📋 Kopieren</button>
+        <button class="code-btn sh" onclick="shRoom()">📤 Teilen</button>
+      </div>
+    </div>
+    <div class="lob-status" id="lobStatus">⏳ Verbinde…</div>
+    <div class="lob-pl"><div class="lbl">Spieler im Raum</div><div id="lplist"></div></div>
+    <button class="lob-start" id="lobStart" onclick="startOnl()">Spiel starten 🎲</button>
+    <button class="lob-back" onclick="leaveLob()">← Zurück</button>
+  </div>`;
   rLP();
-  if(isHost)mkOffer();
-}
-
-function rLP(){const el=$('lplist');if(!el)return;el.innerHTML='';
-lobP.forEach(p=>{el.innerHTML+=`<div class="lp"><div class="dot" style="background:${p.color}"></div>${p.name}${p.id===myId?'<span class="you">Du</span>':''}<span class="st">✓</span></div>`});
-const sb=$('lobStart');if(sb)sb.className='lob-start'+(isHost&&lobP.length>=2?' show':'')}
-
-async function mkOffer(){
-  const pc=new RTCPeerConnection(ICE);
-  const dc=pc.createDataChannel('kniffel');
-  setupDC(dc,'host_'+uid());
-  pc.onicecandidate=e=>{
-    if(!e.candidate){
-      const code=btoa(JSON.stringify(pc.localDescription));
-      showCode(code,'📤 Dein Code — sende an Mitspieler');
-    }
-  };
-  const offer=await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  peers['pending']=pc;
-}
-
-function showCode(code,label){
-  const box=$('offerBox');if(!box)return;
-  let h=`<div class="code-box"><div class="code-lbl">${label}</div>`;
-  h+=`<div class="code-qr"><canvas id="qrCvs"></canvas></div>`;
-  h+=`<div class="code-txt" id="codeTxt">${code}</div>`;
-  h+=`<div class="code-acts"><button class="code-btn cp" onclick="cpCode()">📋 Kopieren</button><button class="code-btn sh" onclick="shCode()">📤 Teilen</button></div>`;
-  h+=`</div>`;
-  box.innerHTML=h;
-  // Generate QR
   try{
-    QRCode.toCanvas($('qrCvs'),code,{width:200,margin:2,color:{dark:'#c084fc',light:'#131316'}},err=>{if(err)console.log('QR too large, text only')});
-  }catch(e){console.log('QR error',e)}
+    QRCode.toCanvas($('qrCvs'),roomCode,{width:160,margin:2,color:{dark:'#c084fc',light:'#131316'}},err=>{if(err)console.log('QR err')});
+  }catch(e){}
 }
 
-function cpCode(){const t=$('codeTxt');if(!t)return;navigator.clipboard?.writeText(t.textContent).then(()=>toast('Kopiert! ✓')).catch(()=>{
-const r=document.createRange();r.selectNodeContents(t);const s=window.getSelection();s.removeAllRanges();s.addRange(r);document.execCommand('copy');toast('Kopiert! ✓')})}
+function showJoin(){
+  isHost=!1;myId=uid();lobP=[];peers={};
+  const el=$('lobbody');
+  el.innerHTML=`<div class="lob">
+    <div class="lob-t">🔗 Raum beitreten</div>
+    <div class="lob-s">Gib den 6-stelligen Raum-Code ein oder scanne den QR-Code</div>
+    <div class="join-box">
+      <input class="join-input" id="joinCode" type="text" placeholder="RAUM-CODE" maxlength="6" autocomplete="off" spellcheck="false" oninput="this.value=this.value.toUpperCase().replace(/[^0-9A-F]/g,'')">
+      <div class="join-acts">
+        <button class="lob-btn con" id="joinBtn" onclick="joinGame()">🔗 Beitreten</button>
+        <button class="lob-btn scan" onclick="startScan()">📷 QR scannen</button>
+      </div>
+    </div>
+    <div class="lob-status" id="lobStatus"></div>
+    <div class="lob-pl" style="display:none" id="joinPlWrap"><div class="lbl">Spieler im Raum</div><div id="lplist"></div></div>
+    <button class="lob-back" onclick="leaveLob()">← Zurück</button>
+  </div>`;
+}
 
-function shCode(){const t=$('codeTxt')?.textContent;if(!t)return;
-if(navigator.share){navigator.share({title:'Kniffel Online',text:t}).catch(()=>{})}else cpCode()}
+function joinGame(){
+  const code=$('joinCode')?.value?.trim().toUpperCase();
+  if(!code||code.length!==6){toast('Bitte 6-stelligen Code eingeben');return}
+  roomCode=code;
+  const btn=$('joinBtn');btn.disabled=!0;btn.textContent='⏳ Verbinde…';
+  $('lobStatus').textContent='⏳ Verbinde mit Raum…';
+  const nm=($('pn-0')?.value||'').trim()||'Spieler';
+  // Create own peer with random ID, then connect to host
+  const pId=PEER_PREFIX+'j-'+uid();
+  connectPeer(pId,()=>{
+    const conn=myPeer.connect(PEER_PREFIX+roomCode,{reliable:!0,metadata:{name:nm,id:myId}});
+    setupConn(conn,'host');
+    netTimeout=setTimeout(()=>{
+      if(!lobP.length){toast('Raum nicht gefunden oder Host offline');$('lobStatus').textContent='❌ Verbindung fehlgeschlagen';btn.disabled=!1;btn.textContent='🔗 Beitreten'}
+    },12000);
+  });
+}
 
-async function processCode(){
-  const raw=$('pasteIn')?.value?.trim();if(!raw){toast('Kein Code');return}
-  const btn=$('conBtn');btn.disabled=!0;btn.textContent='Verbinde…';
-  try{
-    const data=JSON.parse(atob(raw));
-    if(data.type==='offer'){
-      const pc=new RTCPeerConnection(ICE);const pid='p_'+uid();
-      pc.ondatachannel=e=>{setupDC(e.channel,pid);toast('Verbunden! ✓')};
-      pc.onicecandidate=e=>{
-        if(!e.candidate){
-          const ans=btoa(JSON.stringify(pc.localDescription));
-          $('pasteIn').value='';
-          showCode(ans,'📤 Dein Antwort-Code — sende zurück');
-        }
-      };
-      await pc.setRemoteDescription(data);
-      const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
-      peers[pid]=pc;
-    }else if(data.type==='answer'){
-      const pc=peers['pending'];
-      if(!pc){toast('Kein offener Offer');btn.disabled=!1;btn.textContent='🔗 Verbinden';return}
-      await pc.setRemoteDescription(data);
-      delete peers['pending'];peers['ans_'+uid()]=pc;
-      $('pasteIn').value='';
-      toast('Spieler verbunden! ✓');
-      setTimeout(mkOffer,500);
+function connectPeer(peerId,onOpen){
+  if(myPeer){try{myPeer.destroy()}catch(e){}}
+  myPeer=new Peer(peerId,{debug:0});
+  myPeer.on('open',()=>{
+    if(isHost){$('lobStatus').textContent='✅ Raum aktiv — warte auf Spieler…';startHeartbeat()}
+    if(onOpen)onOpen();
+  });
+  myPeer.on('connection',conn=>{
+    if(!isHost)return;
+    const meta=conn.metadata||{};
+    const pid=meta.id||uid();
+    setupConn(conn,pid);
+  });
+  myPeer.on('error',err=>{
+    console.error('Peer error:',err);
+    const msg=err.type==='unavailable-id'?'Raum-Code bereits in Benutzung':
+              err.type==='peer-unavailable'?'Raum nicht gefunden':
+              err.type==='network'?'Netzwerkfehler':
+              'Verbindungsfehler: '+err.type;
+    toast(msg);
+    const st=$('lobStatus');if(st)st.textContent='❌ '+msg;
+    const btn=$('joinBtn');if(btn){btn.disabled=!1;btn.textContent='🔗 Beitreten'}
+  });
+  myPeer.on('disconnected',()=>{
+    if(NET){toast('Verbindung verloren…');const st=$('lobStatus');if(st)st.textContent='⚠️ Verbindung verloren';
+    try{myPeer.reconnect()}catch(e){}}
+  });
+}
+
+function setupConn(conn,pid){
+  conn.on('open',()=>{
+    peers[pid]={conn};
+    if(isHost){
+      const meta=conn.metadata||{};
+      const nm=meta.name||'Spieler';
+      const id=meta.id||pid;
+      if(!lobP.find(p=>p.id===id)){
+        const sl=lobP.length;
+        if(sl>=6){conn.send(JSON.stringify({t:'full'}));conn.close();return}
+        lobP.push({id,name:nm,color:CO[sl%CO.length],slot:sl,_pid:pid});
+        toast(nm+' ist beigetreten!');rLP();bcastLob();
+      }
+      peers[pid]._rid=id;
+    }else{
+      // Joiner: send hi
+      conn.send(JSON.stringify({t:'hi',id:myId,name:($('pn-0')?.value||'').trim()||'Spieler'}));
+      if(netTimeout){clearTimeout(netTimeout);netTimeout=null}
+      $('lobStatus').textContent='✅ Verbunden!';
+      const pw=$('joinPlWrap');if(pw)pw.style.display='';
     }
-  }catch(e){toast('Ungültiger Code');console.error(e)}
-  btn.disabled=!1;btn.textContent='🔗 Verbinden';
+  });
+  conn.on('data',raw=>{
+    try{const m=typeof raw==='string'?JSON.parse(raw):raw;handleNet(m,pid,conn)}catch(e){console.error('msg parse err',e)}
+  });
+  conn.on('close',()=>{
+    if(isHost){
+      const idx=lobP.findIndex(p=>p._pid===pid);
+      if(idx>=0){toast(lobP[idx].name+' getrennt');lobP.splice(idx,1);rLP();bcastLob()}
+    }else{
+      if(NET)toast('Verbindung zum Host verloren');
+    }
+    delete peers[pid];
+  });
+  conn.on('error',err=>console.error('conn error',pid,err));
 }
 
-function setupDC(dc,pid){
-  dc.onopen=()=>{
-    dc.send(JSON.stringify({t:'hi',id:myId,name:lobP.find(p=>p.id===myId)?.name||'Spieler',isHost}));
-    if(isHost)dc.send(JSON.stringify({t:'lob',players:lobP}));
-  };
-  dc.onmessage=e=>{try{handleNet(JSON.parse(e.data),pid,dc)}catch(err){console.error(err)}};
-  dc.onclose=()=>{const idx=lobP.findIndex(p=>p._pid===pid);if(idx>=0){toast(lobP[idx].name+' getrennt');lobP.splice(idx,1);rLP()}};
-  if(!peers[pid]||peers[pid] instanceof RTCPeerConnection)peers[pid]={pc:peers[pid]};
-  peers[pid].dc=dc;
+function rLP(){
+  const el=$('lplist');if(!el)return;el.innerHTML='';
+  lobP.forEach(p=>{
+    const row=document.createElement('div');row.className='lp';
+    const dot=document.createElement('div');dot.className='dot';dot.style.background=p.color;
+    const nm=document.createElement('span');nm.textContent=p.name;
+    row.appendChild(dot);row.appendChild(nm);
+    if(p.id===myId){const you=document.createElement('span');you.className='you';you.textContent='Du';row.appendChild(you)}
+    const st=document.createElement('span');st.className='st';st.textContent='✓';row.appendChild(st);
+    el.appendChild(row);
+  });
+  const sb=$('lobStart');if(sb)sb.className='lob-start'+(isHost&&lobP.length>=2?' show':'');
 }
 
-function handleNet(m,pid,dc){
+function handleNet(m,pid,conn){
   switch(m.t){
     case 'hi':{
-      if(!lobP.find(p=>p.id===m.id)){const sl=lobP.length;lobP.push({id:m.id,name:m.name,color:CO[sl%CO.length],slot:sl,_pid:pid});toast(m.name+' ist beigetreten!');rLP();if(isHost)bcastLob()}
-      if(peers[pid])peers[pid]._rid=m.id;break}
+      // Only used if host receives hi (fallback)
+      if(isHost&&!lobP.find(p=>p.id===m.id)){
+        const sl=lobP.length;
+        if(sl>=6)return;
+        lobP.push({id:m.id,name:m.name,color:CO[sl%CO.length],slot:sl,_pid:pid});
+        toast(m.name+' ist beigetreten!');rLP();bcastLob();
+      }
+      break}
     case 'lob':{
-      lobP=m.players;if(!lobP.find(p=>p.id===myId)){const sl=lobP.length;lobP.push({id:myId,name:'Spieler',color:CO[sl%CO.length],slot:sl})}
+      lobP=m.players;
+      if(!lobP.find(p=>p.id===myId)){const sl=lobP.length;const nm=($('pn-0')?.value||'').trim()||'Spieler';lobP.push({id:myId,name:nm,color:CO[sl%CO.length],slot:sl})}
       mySl=lobP.find(p=>p.id===myId)?.slot??-1;rLP();break}
     case 'go':{
       P=m.players.map(p=>({name:p.name,color:p.color,round:0,scores:{}}));
       ci=0;NET=!0;mySl=lobP.find(p=>p.id===myId)?.slot??0;
       $('ov-lobby').classList.remove('show');$('gbadge').classList.add('show');
-      initT();showScr('game');toast('Spiel gestartet!');break}
+      startHeartbeat();initT();showScr('game');toast('Spiel gestartet!');break}
     case 'roll':{dice=m.dice;tL=m.tL;rol=!0;rling=!1;bD();uTh();if(O.prev)uPrev();if(O.tip)doTip();
       if(tL===0){$('rbtn').disabled=!0;$('rbtn').textContent='Eintragen ↓'}break}
     case 'hold':{held=m.held;bD();break}
@@ -711,23 +788,49 @@ function handleNet(m,pid,dc){
       if(P.every(p=>p.round>=13)){sH({date:new Date().toISOString(),players:P.map(p=>({name:p.name,color:p.color,scores:{...p.scores},total:cT(p.scores)}))});setTimeout(showRes,350);return}
       let nx=(m.ci+1)%P.length;while(P[nx].round>=13)nx=(nx+1)%P.length;
       ci=nx;initT();toast(myT()?'Du bist dran!':P[ci].name+' ist dran…');break}
+    case 'ping':{ if(conn)try{conn.send(JSON.stringify({t:'pong'}))}catch(e){} break}
+    case 'pong':break;
+    case 'full':{toast('Raum ist voll (max 6 Spieler)');leaveLob();break}
+    case 'kick':{toast('Du wurdest entfernt');leaveLob();break}
   }
 }
 
-function bcastLob(){nSend({t:'lob',players:lobP})}
-function nSend(msg){const s=JSON.stringify(msg);Object.values(peers).forEach(p=>{try{const dc=p?.dc;if(dc?.readyState==='open')dc.send(s)}catch(e){}})}
+function bcastLob(){nSend({t:'lob',players:lobP.map(p=>({id:p.id,name:p.name,color:p.color,slot:p.slot}))})}
+function nSend(msg){
+  const s=JSON.stringify(msg);
+  Object.values(peers).forEach(p=>{
+    try{const c=p?.conn;if(c?.open)c.send(s)}catch(e){}
+  });
+}
 
 function startOnl(){
   if(lobP.length<2){toast('Min. 2 Spieler');return}
   P=lobP.map(p=>({name:p.name,color:p.color,round:0,scores:{}}));
   ci=0;NET=!0;mySl=lobP.find(p=>p.id===myId)?.slot??0;
-  nSend({t:'go',players:lobP});
+  nSend({t:'go',players:lobP.map(p=>({id:p.id,name:p.name,color:p.color,slot:p.slot}))});
   $('ov-lobby').classList.remove('show');$('gbadge').classList.add('show');
-  initT();showScr('game');toast('Spiel gestartet!');
+  startHeartbeat();initT();showScr('game');toast('Spiel gestartet!');
 }
 
+function startHeartbeat(){
+  stopHeartbeat();
+  heartbeatIv=setInterval(()=>{nSend({t:'ping'})},15000);
+}
+function stopHeartbeat(){if(heartbeatIv){clearInterval(heartbeatIv);heartbeatIv=null}}
+
 function leaveLob(){disAll();$('ov-lobby').classList.remove('show');NET=!1;stopScan()}
-function disAll(){Object.values(peers).forEach(p=>{try{p?.dc?.close?.()}catch(e){}try{(p?.pc||p)?.close?.()}catch(e){}});peers={};lobP=[];stopScan()}
+function disAll(){
+  stopHeartbeat();
+  if(netTimeout){clearTimeout(netTimeout);netTimeout=null}
+  Object.values(peers).forEach(p=>{try{p?.conn?.close?.()}catch(e){}});
+  peers={};lobP=[];stopScan();
+  if(myPeer){try{myPeer.destroy()}catch(e){}myPeer=null}
+}
+
+function cpRoom(){navigator.clipboard?.writeText(roomCode).then(()=>toast('Kopiert! ✓')).catch(()=>toast('Kopieren fehlgeschlagen'))}
+function shRoom(){if(navigator.share){navigator.share({title:'Kniffel Online',text:'Komm zu meinem Kniffel-Spiel! Raum-Code: '+roomCode}).catch(()=>{})}else cpRoom()}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
 // QR Scanner
 function startScan(){
@@ -744,9 +847,12 @@ function startScan(){
         const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
         if(code?.data){
           stopScan();
-          $('pasteIn').value=code.data;
-          toast('QR erkannt! ✓');
-          processCode();
+          const scanned=code.data.trim().toUpperCase().replace(/[^0-9A-F]/g,'');
+          if(scanned.length===6){
+            const inp=$('joinCode');if(inp)inp.value=scanned;
+            toast('QR erkannt! ✓');
+            joinGame();
+          }else{toast('Ungültiger QR-Code')}
           return;
         }
       }
@@ -847,7 +953,7 @@ function mkChip(p){
   chip.style.background=`linear-gradient(135deg,${p.color},color-mix(in srgb,${p.color} 60%,#000))`;
   chip.dataset.pidx=p.idx;
   chip.draggable=!0;
-  chip.innerHTML=`<div class="chip-dot" style="background:${p.color};box-shadow:0 0 6px ${p.color}"></div><div class="chip-nm">${p.name}</div>`;
+  chip.innerHTML=`<div class="chip-dot" style="background:${p.color};box-shadow:0 0 6px ${p.color}"></div><div class="chip-nm">${esc(p.name)}</div>`;
   // Drag events (pointer-based for touch + mouse)
   chip.addEventListener('dragstart',tblDragStart);
   chip.addEventListener('dragend',tblDragEnd);
