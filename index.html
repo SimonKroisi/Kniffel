@@ -589,9 +589,12 @@ function chkRes(){const s=ld(),btn=$('btn-res');if(s?.P?.length){btn.style.displ
 // ONLINE MULTIPLAYER (PeerJS)
 // ═════════════════════════════════════
 
-function uid(){const a=new Uint8Array(6);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(36).padStart(2,'0')).join('').slice(0,8)}
+function uid(){const a=new Uint8Array(5);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(36).padStart(2,'0')).join('').slice(0,8)}
 function mkRoom(){const a=new Uint8Array(3);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('').toUpperCase()}
 const PEER_PREFIX='kniffel-v2-';
+const HEARTBEAT_MS=15000;
+const JOIN_TIMEOUT_MS=12000;
+const _escEl=document.createElement('span');
 
 function openLobby(){
   myId=uid();isHost=!0;NET=!1;mySl=0;lobP=[];peers={};roomCode='';
@@ -675,8 +678,8 @@ function joinGame(){
     const conn=myPeer.connect(PEER_PREFIX+roomCode,{reliable:!0,metadata:{name:nm,id:myId}});
     setupConn(conn,'host');
     netTimeout=setTimeout(()=>{
-      if(!lobP.length){toast('Raum nicht gefunden oder Host offline');$('lobStatus').textContent='❌ Verbindung fehlgeschlagen';btn.disabled=!1;btn.textContent='🔗 Beitreten'}
-    },12000);
+      if(!lobP.length){toast('Raum nicht gefunden oder Host offline');const st=$('lobStatus');if(st)st.textContent='❌ Verbindung fehlgeschlagen';const b=$('joinBtn');if(b){b.disabled=!1;b.textContent='🔗 Beitreten'}}
+    },JOIN_TIMEOUT_MS);
   });
 }
 
@@ -814,7 +817,7 @@ function startOnl(){
 
 function startHeartbeat(){
   stopHeartbeat();
-  heartbeatIv=setInterval(()=>{nSend({t:'ping'})},15000);
+  heartbeatIv=setInterval(()=>{nSend({t:'ping'})},HEARTBEAT_MS);
 }
 function stopHeartbeat(){if(heartbeatIv){clearInterval(heartbeatIv);heartbeatIv=null}}
 
@@ -830,7 +833,7 @@ function disAll(){
 function cpRoom(){navigator.clipboard?.writeText(roomCode).then(()=>toast('Kopiert! ✓')).catch(()=>toast('Kopieren fehlgeschlagen'))}
 function shRoom(){if(navigator.share){navigator.share({title:'Kniffel Online',text:'Komm zu meinem Kniffel-Spiel! Raum-Code: '+roomCode}).catch(()=>{})}else cpRoom()}
 
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function esc(s){_escEl.textContent=s;return _escEl.innerHTML}
 
 // QR Scanner
 function startScan(){
